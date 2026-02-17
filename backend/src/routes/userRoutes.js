@@ -19,6 +19,7 @@ router.use(protect, requireAdmin);
 
 router.get('/', getAllUsers);
 router.post('/', createUser);
+router.get('/:id', getUserById);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
 router.post('/:id/reset-password', resetPassword);

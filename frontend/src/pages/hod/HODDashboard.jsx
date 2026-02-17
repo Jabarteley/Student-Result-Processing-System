@@ -55,13 +55,13 @@ const HODDashboard = () => {
                 <Card>
                     <div style={cardStyles}>
                         <div style={labelStyles}>Active Courses</div>
-                        <div style={valueStyles}>{stats.courses}</div>
+                        <div style={valueStyles}>{stats.totalCourses}</div>
                     </div>
                 </Card>
                 <Card>
                     <div style={cardStyles}>
                         <div style={labelStyles}>Total Students</div>
-                        <div style={valueStyles}>{stats.students}</div>
+                        <div style={valueStyles}>{stats.totalStudents}</div>
                     </div>
                 </Card>
             </div>
@@ -105,7 +105,7 @@ const HODDashboard = () => {
                     )}
                 </Card>
             </div>
-        </div>
+        </div >
     );
 };
 

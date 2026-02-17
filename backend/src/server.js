@@ -12,7 +12,11 @@ import courseRoutes from './routes/courseRoutes.js';
 import resultRoutes from './routes/resultRoutes.js';
 import sessionRoutes from './routes/sessionRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import auditRoutes from './routes/auditRoutes.js';
+
+// ...
+
+app.use('/api/audit-logs', auditRoutes);
 import gradingRoutes from './routes/gradingRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import hodRoutes from './routes/hodRoutes.js';
