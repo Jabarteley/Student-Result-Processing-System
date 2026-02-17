@@ -1,0 +1,457 @@
+Here is a very detailed Product Requirements Document (PRD) for your project, redesigned to match your actual tech stack:
+
+Frontend: Vite + React
+
+Backend: Node.js + Express
+
+Database: MongoDB
+
+Architecture: RESTful API (MERN-based system)
+
+📘 PRODUCT REQUIREMENTS DOCUMENT (PRD)
+Student Result Processing System (SRPS)
+
+For i-FATOSS University, Benin
+
+1. Product Overview
+1.1 Product Name
+
+Student Result Processing System (SRPS)
+
+1.2 Product Description
+
+The Student Result Processing System (SRPS) is a web-based academic management system designed to automate student result computation, GPA/CGPA calculation, and result generation at i-FATOSS University, Benin.
+
+The system replaces manual result computation methods with a secure, scalable, and automated platform.
+
+2. Problem Statement
+
+Manual result processing leads to:
+
+Arithmetic errors in GPA/CGPA
+
+Delayed result publication
+
+Data loss and poor record storage
+
+Inconsistent grading standards
+
+Difficulty retrieving past results
+
+Poor security of academic records
+
+The institution requires a centralized, automated system to ensure accuracy, transparency, and efficiency.
+
+3. Product Goals & Objectives
+3.1 Primary Goals
+
+Automate GPA & CGPA calculation
+
+Ensure accurate grade computation
+
+Provide secure academic record storage
+
+Allow easy generation of result sheets
+
+Reduce lecturer and admin workload
+
+3.2 Measurable Success Metrics
+
+100% automated GPA/CGPA computation
+
+< 2 seconds result generation time
+
+Zero manual arithmetic errors
+
+Secure role-based access control
+
+99% data integrity consistency
+
+4. Target Users
+4.1 Admin
+
+Register students
+
+Register courses
+
+Assign lecturers
+
+Manage grading system
+
+Manage academic sessions & semesters
+
+4.2 Lecturer
+
+Upload student scores
+
+Edit scores (before approval)
+
+Submit results for approval
+
+4.3 HOD (Optional Role)
+
+Review and approve results
+
+4.4 Student
+
+View semester results
+
+View GPA & CGPA
+
+Download printable result sheet
+
+5. Functional Requirements
+5.1 Authentication & Authorization
+Features:
+
+JWT-based authentication
+
+Role-based access control (RBAC)
+
+Secure password hashing (bcrypt)
+
+Protected routes
+
+Roles:
+
+Super Admin
+
+Admin
+
+Lecturer
+
+Student
+
+5.2 Student Management Module
+Features:
+
+Add new student
+
+Edit student details
+
+Delete student
+
+Assign department
+
+Auto-generate matric number
+
+View student profile
+
+Student Data Fields:
+
+Full Name
+
+Matric Number
+
+Department
+
+Faculty
+
+Level (100–500)
+
+Email
+
+Academic Session
+
+Admission Year
+
+Status (Active/Graduated)
+
+5.3 Course Management Module
+Features:
+
+Create course
+
+Edit course
+
+Delete course
+
+Assign credit units
+
+Assign semester (First/Second)
+
+Assign level
+
+Assign lecturer
+
+Course Fields:
+
+Course Code
+
+Course Title
+
+Credit Units
+
+Level
+
+Semester
+
+Department
+
+5.4 Score Upload Module
+Lecturer Capabilities:
+
+Upload student scores
+
+Upload via:
+
+Manual entry
+
+CSV bulk upload
+
+Edit scores before submission
+
+Submit for approval
+
+Score Fields:
+
+CA (Continuous Assessment)
+
+Exam Score
+
+Total Score (auto-calculated)
+
+5.5 Grade Computation Logic
+Grading System (Example)
+Score	Grade	Grade Point
+70–100	A	5
+60–69	B	4
+50–59	C	3
+45–49	D	2
+40–44	E	1
+0–39	F	0
+Formula:
+GPA:
+GPA = Σ (Grade Point × Credit Unit) / Σ Credit Units
+
+CGPA:
+CGPA = Total Quality Points (all semesters) / Total Credit Units (all semesters)
+
+
+System must:
+
+Automatically compute grade
+
+Automatically compute GPA per semester
+
+Automatically compute cumulative CGPA
+
+5.6 Result Generation Module
+Features:
+
+Generate semester result
+
+Display:
+
+Courses
+
+Scores
+
+Grades
+
+Credit Units
+
+GPA
+
+Show CGPA
+
+Print result sheet (PDF export)
+
+Transcript generation (future phase)
+
+5.7 Academic Session Management
+
+Admin can:
+
+Create new academic session
+
+Lock semester
+
+Prevent score editing after locking
+
+5.8 Dashboard Analytics
+
+Admin Dashboard:
+
+Total students
+
+Total lecturers
+
+Total courses
+
+Session summary
+
+Lecturer Dashboard:
+
+Assigned courses
+
+Uploaded results
+
+Pending approvals
+
+Student Dashboard:
+
+Current GPA
+
+Current CGPA
+
+Semester summary
+
+6. Non-Functional Requirements
+6.1 Security
+
+Password hashing (bcrypt)
+
+JWT authentication
+
+Role-based access control
+
+Input validation
+
+MongoDB injection protection
+
+HTTPS (Production)
+
+6.2 Performance
+
+Result computation < 2 seconds
+
+API response time < 500ms
+
+Efficient database indexing
+
+6.3 Scalability
+
+MongoDB schema designed for growth
+
+Modular Express structure
+
+Horizontal scaling ready
+
+6.4 Reliability
+
+Backup strategy
+
+Error logging
+
+Transaction integrity
+
+7. System Architecture
+7.1 Architecture Type
+
+Client-Server Architecture (RESTful API)
+
+Frontend:
+
+Vite + React
+
+Axios for API communication
+
+Context API or Redux for state management
+
+Backend:
+
+Node.js
+
+Express.js
+
+MVC architecture
+
+Middleware for authentication
+
+Database:
+
+MongoDB (Mongoose ODM)
+
+8. Database Design (MongoDB Collections)
+8.1 Users Collection
+{
+  name: String,
+  email: String,
+  password: String,
+  role: ["admin", "lecturer", "student"],
+  department: String,
+  createdAt: Date
+}
+
+8.2 Students Collection
+{
+  userId: ObjectId,
+  matricNumber: String,
+  department: String,
+  level: Number,
+  sessionAdmitted: String,
+  status: String
+}
+
+8.3 Courses Collection
+{
+  courseCode: String,
+  title: String,
+  creditUnit: Number,
+  department: String,
+  level: Number,
+  semester: String,
+  lecturerId: ObjectId
+}
+
+8.4 Results Collection
+{
+  studentId: ObjectId,
+  courseId: ObjectId,
+  session: String,
+  semester: String,
+  CA: Number,
+  exam: Number,
+  total: Number,
+  grade: String,
+  gradePoint: Number
+}
+
+8.5 GPA Collection (Optional Optimization)
+{
+  studentId: ObjectId,
+  session: String,
+  semester: String,
+  GPA: Number,
+  CGPA: Number
+}
+
+9. API Requirements
+Authentication
+
+POST /api/auth/register
+
+POST /api/auth/login
+
+Students
+
+GET /api/students
+
+POST /api/students
+
+PUT /api/students/:id
+
+DELETE /api/students/:id
+
+Courses
+
+GET /api/courses
+
+POST /api/courses
+
+Results
+
+POST /api/results/upload
+
+GET /api/results/student/:id
+
+GET /api/results/semester/:id
+
+Transcript export
+
+
+
+Email notification system
+
+Audit log tracking
