@@ -567,3 +567,51 @@ export const bulkUpdateResults = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc    Publish results (make visible to students)
+ * @route   POST /api/results/publish
+ * @access  Private (Admin)
+ */
+export const publishResults = async (req, res) => {
+    try {
+        const { resultIds } = req.body;
+
+        if (!resultIds || !Array.isArray(resultIds) || resultIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide an array of resultIds'
+            });
+        }
+
+        const updateResult = await Result.updateMany(
+            {
+                _id: { $in: resultIds },
+                status: 'hod_approved'
+            },
+            {
+                status: 'published',
+                publishedBy: req.user._id,
+                publishedAt: new Date()
+            }
+        );
+
+        await logAction({
+            userId: req.user._id,
+            action: 'PUBLISH_RESULT',
+            resource: 'Result',
+            description: `Published ${updateResult.modifiedCount} results`
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `${updateResult.modifiedCount} results published successfully`,
+            data: { count: updateResult.modifiedCount }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
