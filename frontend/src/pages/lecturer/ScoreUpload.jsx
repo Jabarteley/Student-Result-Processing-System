@@ -76,7 +76,9 @@ const ScoreUpload = () => {
 
             // 3. Merge: Match students with their results
             const mergedStudents = enrolledStudents.map(student => {
-                const result = existingResults.find(r => r.studentId._id === student._id);
+                const result = existingResults.find(r =>
+                    (r.studentId._id || r.studentId).toString() === student._id.toString()
+                );
                 return {
                     _id: result ? result._id : `temp-${student._id}`,
                     studentId: student,
@@ -212,6 +214,7 @@ const ScoreUpload = () => {
                             <tr>
                                 <th style={{ textAlign: 'left', padding: '12px' }}>Matric No</th>
                                 <th style={{ textAlign: 'left', padding: '12px' }}>Name</th>
+                                <th style={{ textAlign: 'left', padding: '12px' }}>Status</th>
                                 <th style={{ textAlign: 'left', padding: '12px' }}>CA (30)</th>
                                 <th style={{ textAlign: 'left', padding: '12px' }}>Exam (70)</th>
                                 <th style={{ textAlign: 'left', padding: '12px' }}>Total</th>
@@ -220,9 +223,9 @@ const ScoreUpload = () => {
                         </thead>
                         <tbody>
                             {students.map(record => {
-                                const studentId = record._id;
+                                const studentId = record.studentId._id;
                                 const score = scores[studentId] || { caScore: 0, examScore: 0, totalScore: 0, grade: 'F', status: 'draft', rejectionReason: '' };
-                                const isInputDisabled = score.status === 'submitted' || score.status === 'hod_approved';
+                                const isInputDisabled = ['submitted', 'hod_approved', 'published'].includes(score.status);
 
                                 return (
                                     <tr key={studentId} style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -242,7 +245,7 @@ const ScoreUpload = () => {
                                                         score.status === 'hod_approved' ? '#15803d' :
                                                             score.status === 'rejected' ? '#b91c1c' : '#374151'
                                             }}>
-                                                {score.status.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase()) || 'Draft'}
+                                                {score.status?.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase()) || 'Draft'}
                                             </span>
                                             {score.status === 'rejected' && score.rejectionReason && (
                                                 <div style={{ fontSize: '11px', color: '#b91c1c', marginTop: '4px', maxWidth: '150px' }}>

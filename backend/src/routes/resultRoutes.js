@@ -10,7 +10,8 @@ import {
     getMyResults,
     getResults,
     bulkUpdateResults,
-    publishResults
+    publishResults,
+    overrideGrade
 } from '../controllers/resultController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { requireAdmin, requireLecturer } from '../middleware/roleMiddleware.js';
@@ -34,5 +35,6 @@ router.get('/course/:courseId', protect, requireLecturer, mongoIdValidation, get
 router.get('/', protect, getResults);
 router.post('/bulk-update', protect, requireLecturer, bulkUpdateResults);
 router.post('/publish', protect, requireAdmin, publishResults);
+router.post('/override-grade', protect, requireAdmin, overrideGrade);
 
 export default router;

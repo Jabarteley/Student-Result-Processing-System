@@ -54,7 +54,7 @@ const SemesterResults = () => {
                 point: r.gradePoint
             })));
 
-            setGpa(gpa?.gpa || 0.00);
+            setGpa(gpa?.GPA || 0.00);
         } catch (error) {
             console.error('Error fetching results:', error);
             alert(error.response?.data?.message || 'Failed to fetch results');

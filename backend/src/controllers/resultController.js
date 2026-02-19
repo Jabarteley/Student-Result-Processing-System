@@ -615,3 +615,69 @@ export const publishResults = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc    Override a student's grade (Admin only)
+ * @route   POST /api/results/override-grade
+ * @access  Private (Admin)
+ */
+export const overrideGrade = async (req, res) => {
+    try {
+        const { resultId, score, reason } = req.body;
+
+        if (!resultId || score === undefined || !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide resultId, new total score, and reason'
+            });
+        }
+
+        const result = await Result.findById(resultId);
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: 'Result not found'
+            });
+        }
+
+        // Calculate new grade based on total score
+        const total = parseFloat(score);
+        const gradeInfo = calculateGrade(total);
+
+        // Update result
+        result.total = total;
+        result.grade = gradeInfo.grade;
+        result.gradePoint = gradeInfo.point;
+        result.remarks = reason;
+        result.approvedBy = req.user._id;
+        result.approvedAt = new Date();
+
+        // If it was rejected, move it back to hod_approved or published
+        if (result.status === 'rejected') {
+            result.status = 'hod_approved';
+        }
+
+        await result.save();
+
+        // Recalculate student GPA
+        await computeAndSaveGPA(result.studentId, result.session, result.semester);
+
+        await logAction({
+            userId: req.user._id,
+            action: 'OVERRIDE_GRADE',
+            resource: 'Result',
+            description: `Overrode grade for student ${result.studentId} in course ${result.courseId}. New Score: ${total}, Reason: ${reason}`
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Grade overridden successfully',
+            data: result
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

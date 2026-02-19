@@ -2,7 +2,7 @@ import Student from '../models/Student.js';
 import Course from '../models/Course.js';
 import User from '../models/User.js';
 import Result from '../models/Result.js';
-import { getAllStudentGPAs } from '../utils/gpaCalculator.js';
+import { getAllStudentGPAs, computeAndSaveGPA } from '../utils/gpaCalculator.js';
 
 /**
  * @desc    Get admin dashboard stats
@@ -115,7 +115,27 @@ export const getStudentDashboard = async (req, res) => {
         }
 
         // Get all GPA records
-        const gpaRecords = await getAllStudentGPAs(student._id);
+        let gpaRecords = await getAllStudentGPAs(student._id);
+
+        // If no records but results exist, try to compute at least one
+        if (gpaRecords.length === 0) {
+            const hasResults = await Result.exists({
+                studentId: student._id,
+                status: { $in: ['hod_approved', 'published'] }
+            });
+            if (hasResults) {
+                // Find latest session/semester to compute
+                const latestResult = await Result.findOne({
+                    studentId: student._id,
+                    status: { $in: ['hod_approved', 'published'] }
+                }).sort({ session: -1, semester: -1 });
+
+                if (latestResult) {
+                    await computeAndSaveGPA(student._id, latestResult.session, latestResult.semester);
+                    gpaRecords = await getAllStudentGPAs(student._id);
+                }
+            }
+        }
 
         // Get latest CGPA
         const latestGPA = gpaRecords.length > 0 ? gpaRecords[gpaRecords.length - 1] : null;

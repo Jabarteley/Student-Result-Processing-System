@@ -31,8 +31,17 @@ export const calculateSemesterGPA = async (studentId, session, semester) => {
         let totalCreditUnits = 0;
 
         results.forEach(result => {
-            const creditUnit = result.courseId.creditUnit;
-            const gradePoint = result.gradePoint;
+            if (!result.courseId) return; // Skip if course info is missing
+
+            const creditUnit = result.courseId.creditUnit || 0;
+            let gradePoint = result.gradePoint;
+
+            // Self-healing: if gradePoint is missing, calculate it
+            if (gradePoint === undefined || gradePoint === null) {
+                const total = (result.CA || 0) + (result.exam || 0);
+                const gradeInfo = calculateGrade(total);
+                gradePoint = gradeInfo.point;
+            }
 
             totalQualityPoints += gradePoint * creditUnit;
             totalCreditUnits += creditUnit;
@@ -80,8 +89,17 @@ export const calculateCGPA = async (studentId, upToSession = null, upToSemester 
         let cumulativeCreditUnits = 0;
 
         results.forEach(result => {
-            const creditUnit = result.courseId.creditUnit;
-            const gradePoint = result.gradePoint;
+            if (!result.courseId) return; // Skip if course info is missing
+
+            const creditUnit = result.courseId.creditUnit || 0;
+            let gradePoint = result.gradePoint;
+
+            // Self-healing
+            if (gradePoint === undefined || gradePoint === null) {
+                const total = (result.CA || 0) + (result.exam || 0);
+                const gradeInfo = calculateGrade(total);
+                gradePoint = gradeInfo.point;
+            }
 
             cumulativeQualityPoints += gradePoint * creditUnit;
             cumulativeCreditUnits += creditUnit;

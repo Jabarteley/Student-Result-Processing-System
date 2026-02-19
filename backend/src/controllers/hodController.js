@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { logAction } from '../utils/auditLogger.js';
 import { calculateGrade } from '../utils/gradeCalculator.js';
+import { computeAndSaveGPA } from '../utils/gpaCalculator.js';
 
 // Get HOD dashboard data
 export const getHODDashboard = async (req, res) => {
@@ -141,26 +142,51 @@ export const approveResults = async (req, res) => {
             });
         }
 
-        const results = await Result.updateMany(query, {
+        const updateResult = await Result.updateMany(query, {
             status: 'hod_approved',
             hodApprovedBy: req.user._id,
             hodApprovedAt: new Date()
         });
+
+        // Trigger GPA computation for all affected students
+        try {
+            // Find all results affected by the update to get student IDs, sessions, and semesters
+            const affectedResults = await Result.find(query).select('studentId session semester');
+
+            // Create unique combinations of studentId, session, semester
+            const uniqueCombinations = new Set();
+            affectedResults.forEach(r => {
+                uniqueCombinations.add(JSON.stringify({
+                    studentId: r.studentId.toString(),
+                    session: r.session,
+                    semester: r.semester
+                }));
+            });
+
+            // Compute GPA for each combination
+            for (const comboStr of uniqueCombinations) {
+                const { studentId, session, semester } = JSON.parse(comboStr);
+                await computeAndSaveGPA(studentId, session, semester);
+            }
+        } catch (gpaErr) {
+            console.error('Error triggering GPA computation after approval:', gpaErr);
+            // We don't fail the approval if GPA calculation fails, but we log it
+        }
 
         // Log action
         await logAction({
             userId: req.user._id,
             action: 'HOD_APPROVE_RESULTS',
             resource: 'Result',
-            details: `HOD approved ${results.modifiedCount} results`,
+            details: `HOD approved ${updateResult.modifiedCount} results`,
             ipAddress: req.ip,
             userAgent: req.get('user-agent')
         });
 
         res.json({
             success: true,
-            message: `${results.modifiedCount} results approved successfully`,
-            data: { approvedCount: results.modifiedCount }
+            message: `${updateResult.modifiedCount} results approved successfully`,
+            data: { approvedCount: updateResult.modifiedCount }
         });
     } catch (error) {
         res.status(500).json({
