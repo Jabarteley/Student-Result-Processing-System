@@ -22,6 +22,7 @@ const Sidebar = ({ role, user }) => {
                     { name: 'Students', path: '/admin/students', icon: <FaGraduationCap /> },
                     { name: 'Courses', path: '/admin/courses', icon: <FaBook /> },
                     { name: 'Sessions', path: '/admin/sessions', icon: <FaUniversity /> },
+                    { name: 'Departments', path: '/admin/departments', icon: <FaUniversity /> },
                     { name: 'Results', path: '/admin/results', icon: <FaClipboardCheck /> },
                     { name: 'Grading', path: '/admin/grading', icon: <FaChartBar /> },
                     { name: 'Reports', path: '/admin/reports', icon: <FaFileAlt /> },

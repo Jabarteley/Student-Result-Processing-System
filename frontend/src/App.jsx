@@ -22,6 +22,7 @@ import ResultOversight from './pages/admin/ResultOversight';
 import Reports from './pages/admin/Reports';
 import AuditLogs from './pages/admin/AuditLogs';
 import SystemSettings from './pages/admin/SystemSettings';
+import DepartmentList from './pages/admin/DepartmentList';
 
 // Lecturer Pages
 import LecturerCourses from './pages/lecturer/LecturerCourses';
@@ -44,7 +45,7 @@ import DownloadResult from './pages/student/DownloadResult';
 function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                     <Route path="/login" element={<Login />} />
 
@@ -68,6 +69,7 @@ function App() {
                         <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><Reports /></ProtectedRoute>} />
                         <Route path="/admin/audit-logs" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><AuditLogs /></ProtectedRoute>} />
                         <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><SystemSettings /></ProtectedRoute>} />
+                        <Route path="/admin/departments" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><DepartmentList /></ProtectedRoute>} />
 
                         {/* Lecturer Routes */}
                         <Route path="/lecturer" element={<ProtectedRoute allowedRoles={['lecturer', 'admin']}><Navigate to="/lecturer/courses" replace /></ProtectedRoute>} />

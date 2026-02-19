@@ -22,6 +22,7 @@ const UserList = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
+    const [departments, setDepartments] = useState([]);
 
     const containerStyles = {
         padding: '24px',
@@ -136,6 +137,18 @@ const UserList = () => {
     };
 
     useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await api.get('/departments');
+                setDepartments(response.data.data);
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+            }
+        };
+        fetchDepartments();
+    }, []);
+
+    useEffect(() => {
         fetchUsers();
     }, [filters, pagination.page]);
 
@@ -235,6 +248,15 @@ const UserList = () => {
                             { value: 'hod', label: 'HOD' },
                             { value: 'lecturer', label: 'Lecturer' },
                             { value: 'student', label: 'Student' }
+                        ]}
+                    />
+                    <Select
+                        name="department"
+                        value={filters.department}
+                        onChange={handleFilterChange}
+                        options={[
+                            { value: '', label: 'All Departments' },
+                            ...departments.map(d => ({ value: d.name, label: d.name }))
                         ]}
                     />
                     <Select

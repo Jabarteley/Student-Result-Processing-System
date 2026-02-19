@@ -20,6 +20,7 @@ const ResultOversight = () => {
     });
     const [courses, setCourses] = useState([]);
     const [sessions, setSessions] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [selectedResults, setSelectedResults] = useState([]);
     const [showOverrideModal, setShowOverrideModal] = useState(false);
     const [overrideData, setOverrideData] = useState({ resultId: '', newScore: '', reason: '' });
@@ -55,9 +56,22 @@ const ResultOversight = () => {
     };
 
     useEffect(() => {
-        fetchSessions();
+        fetchInitialData();
         // Ideally fetch courses here too or depend on department/level filter
     }, []);
+
+    const fetchInitialData = async () => {
+        try {
+            const [sessRes, deptRes] = await Promise.all([
+                api.get('/sessions'),
+                api.get('/departments')
+            ]);
+            setSessions(sessRes.data.data.map(s => ({ value: s.name, label: s.name })));
+            setDepartments(deptRes.data.data);
+        } catch (error) {
+            console.error('Error fetching initial data:', error);
+        }
+    };
 
     useEffect(() => {
         if (filters.session && filters.semester) {
@@ -65,12 +79,6 @@ const ResultOversight = () => {
         }
     }, [filters]);
 
-    const fetchSessions = async () => {
-        try {
-            const res = await api.get('/sessions');
-            setSessions(res.data.data.map(s => ({ value: s.name, label: s.name })));
-        } catch (error) { console.error(error); }
-    };
 
     const fetchResults = async () => {
         setLoading(true);
@@ -168,8 +176,7 @@ const ResultOversight = () => {
                         onChange={handleFilterChange}
                         options={[
                             { value: '', label: 'All Departments' },
-                            { value: 'Computer Science', label: 'Computer Science' },
-                            { value: 'Mathematics', label: 'Mathematics' }
+                            ...departments.map(d => ({ value: d.name, label: d.name }))
                         ]}
                     />
                     <Select

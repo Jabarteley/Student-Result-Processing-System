@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import Card from '../../components/common/Card';
@@ -20,6 +20,32 @@ const CreateStudent = () => {
         sessionAdmitted: `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
         gender: 'male'
     });
+    const [departments, setDepartments] = useState([]);
+    const [sessions, setSessions] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [deptRes, sessRes] = await Promise.all([
+                    api.get('/departments'),
+                    api.get('/sessions')
+                ]);
+                setDepartments(deptRes.data.data);
+                setSessions(sessRes.data.data);
+
+                if (deptRes.data.data.length > 0) {
+                    setFormData(prev => ({ ...prev, department: deptRes.data.data[0].name }));
+                }
+                if (sessRes.data.data.length > 0) {
+                    const activeSession = sessRes.data.data.find(s => s.isActive) || sessRes.data.data[0];
+                    setFormData(prev => ({ ...prev, sessionAdmitted: activeSession.name }));
+                }
+            } catch (error) {
+                console.error('Error fetching dynamic data:', error);
+            }
+        };
+        fetchData();
+    }, []);
 
     const containerStyles = {
         padding: '24px',
@@ -99,11 +125,7 @@ const CreateStudent = () => {
                             value={formData.department}
                             onChange={handleChange}
                             required
-                            options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' }
-                            ]}
+                            options={departments.map(d => ({ value: d.name, label: d.name }))}
                         />
 
                         <Select
@@ -129,13 +151,13 @@ const CreateStudent = () => {
                             required
                         />
 
-                        <Input
+                        <Select
                             label="Session Admitted"
                             name="sessionAdmitted"
                             value={formData.sessionAdmitted}
                             onChange={handleChange}
-                            placeholder="e.g. 2023/2024"
                             required
+                            options={sessions.map(s => ({ value: s.name, label: s.name }))}
                         />
 
                         <Select

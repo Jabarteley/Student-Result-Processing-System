@@ -1,5 +1,6 @@
 import Course from '../models/Course.js';
 import User from '../models/User.js';
+import Student from '../models/Student.js';
 import { logAction } from '../utils/auditLogger.js';
 
 /**
@@ -268,6 +269,30 @@ export const deleteCourse = async (req, res) => {
 };
 
 /**
+ * @desc    Get courses for logged in lecturer
+ * @route   GET /api/courses/my-courses
+ * @access  Private (Lecturer or Admin)
+ */
+export const getMyCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({
+            lecturerId: req.user._id,
+            isActive: true
+        }).sort({ courseCode: 1 });
+
+        res.status(200).json({
+            success: true,
+            data: courses
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
  * @desc    Get courses by lecturer
  * @route   GET /api/courses/lecturer/:lecturerId
  * @access  Private
@@ -337,6 +362,41 @@ export const assignLecturer = async (req, res) => {
             success: true,
             message: 'Lecturer assigned successfully',
             data: populatedCourse
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Get all students enrolled in a course (based on dept/level)
+ * @route   GET /api/courses/:id/students
+ * @access  Private
+ */
+export const getEnrolledStudents = async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: 'Course not found'
+            });
+        }
+
+        // Find students in the same department and level
+        const students = await Student.find({
+            department: course.department,
+            level: course.level,
+            status: 'active'
+        }).populate('userId', 'name email');
+
+        res.status(200).json({
+            success: true,
+            count: students.length,
+            data: students
         });
     } catch (error) {
         res.status(500).json({

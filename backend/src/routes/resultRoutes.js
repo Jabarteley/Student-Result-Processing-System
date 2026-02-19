@@ -6,7 +6,10 @@ import {
     submitResults,
     approveResults,
     getResultsByStudent,
-    getResultsByCourse
+    getResultsByCourse,
+    getMyResults,
+    getResults,
+    bulkUpdateResults
 } from '../controllers/resultController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { requireAdmin, requireLecturer } from '../middleware/roleMiddleware.js';
@@ -25,6 +28,9 @@ router.post('/bulk-upload', protect, requireLecturer, upload.single('file'), bul
 router.post('/submit', protect, requireLecturer, submitResults);
 router.post('/approve', protect, requireAdmin, approveResults);
 router.get('/student/:studentId', protect, mongoIdValidation, getResultsByStudent);
+router.get('/my-results', protect, getMyResults);
 router.get('/course/:courseId', protect, requireLecturer, mongoIdValidation, getResultsByCourse);
+router.get('/', protect, getResults);
+router.post('/bulk-update', protect, requireLecturer, bulkUpdateResults);
 
 export default router;

@@ -10,6 +10,7 @@ const CreateCourse = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [lecturers, setLecturers] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         courseCode: '',
         title: '',
@@ -27,13 +28,32 @@ const CreateCourse = () => {
     const formGridStyles = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' };
 
     useEffect(() => {
-        fetchLecturers();
+        fetchInitialData();
+    }, []);
+
+    const fetchInitialData = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data.data);
+            if (response.data.data.length > 0) {
+                setFormData(prev => ({ ...prev, department: response.data.data[0].name }));
+                fetchLecturers(response.data.data[0].name);
+            }
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (formData.department) {
+            fetchLecturers(formData.department);
+        }
     }, [formData.department]);
 
-    const fetchLecturers = async () => {
+    const fetchLecturers = async (dept) => {
         try {
             const params = { role: 'lecturer' };
-            if (formData.department) params.department = formData.department;
+            if (dept) params.department = dept;
 
             const response = await api.get('/users', { params });
             setLecturers(response.data.data.map(l => ({
@@ -111,9 +131,8 @@ const CreateCourse = () => {
                             onChange={handleChange}
                             required
                             options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' }
+                                { value: '', label: 'Select Department' },
+                                ...departments.map(d => ({ value: d.name, label: d.name }))
                             ]}
                         />
 

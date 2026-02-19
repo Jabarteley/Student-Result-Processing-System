@@ -4,11 +4,29 @@ import Button from '../../components/common/Button';
 import api from '../../services/api'
 
 const DepartmentReports = () => {
-    const [filters, setFilters] = useState({ session: '2023/2024', semester: 'First' }); // Example initial filters
+    const [sessions, setSessions] = useState([]);
+    const [filters, setFilters] = useState({ session: '', semester: 'First' });
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const response = await api.get('/sessions');
+                const sessionData = response.data.data;
+                setSessions(sessionData);
+                if (sessionData.length > 0) {
+                    setFilters(prev => ({ ...prev, session: sessionData[0].name }));
+                }
+            } catch (error) {
+                console.error('Error fetching sessions:', error);
+            }
+        };
+        fetchSessions();
+    }, []);
+
     const fetchReports = async () => {
+        if (!filters.session) return;
         setLoading(true);
         try {
             const { session, semester } = filters;
@@ -17,14 +35,11 @@ const DepartmentReports = () => {
             if (response.data && response.data.success) {
                 setReportData(response.data.data);
             } else {
-                // Handle API error or unsuccessful response
-                console.error('API response indicates failure:', response.data);
-                setReportData(null); // Clear data on failure
+                setReportData(null);
             }
         } catch (error) {
             console.error('Error fetching reports:', error);
-            // alert('Failed to fetch reports'); // Consider a more user-friendly notification
-            setReportData(null); // Clear data on error
+            setReportData(null);
         } finally {
             setLoading(false);
         }
@@ -32,10 +47,7 @@ const DepartmentReports = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFilters(prev => ({ ...prev, [name]: value }));
     };
 
     const applyFilters = () => {
@@ -43,8 +55,11 @@ const DepartmentReports = () => {
     };
 
     useEffect(() => {
-        fetchReports(); // Fetch reports on initial component mount
-    }, []); // Empty dependency array means it runs once on mount
+        if (filters.session) {
+            fetchReports();
+        }
+    }, [filters.session]);
+    // Re-fetch reports when the session filter changes
 
     // Placeholder for analytics similar to Admin Reports but scoped to Dept
     return (
@@ -61,9 +76,9 @@ const DepartmentReports = () => {
                             onChange={handleFilterChange}
                             style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}
                         >
-                            <option value="2023/2024">2023/2024</option>
-                            <option value="2022/2023">2022/2023</option>
-                            {/* Add more sessions dynamically */}
+                            {sessions.map(s => (
+                                <option key={s._id} value={s.name}>{s.name}</option>
+                            ))}
                         </select>
                     </div>
                     <div>

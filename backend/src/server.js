@@ -13,13 +13,11 @@ import resultRoutes from './routes/resultRoutes.js';
 import sessionRoutes from './routes/sessionRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
-
-// ...
-
-app.use('/api/audit-logs', auditRoutes);
+import userRoutes from './routes/userRoutes.js';
 import gradingRoutes from './routes/gradingRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import hodRoutes from './routes/hodRoutes.js';
+import departmentRoutes from './routes/departmentRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -61,8 +59,10 @@ app.use('/api/results', resultRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/audit-logs', auditRoutes);
 app.use('/api/grading', gradingRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/departments', departmentRoutes);
 app.use('/api/hod', hodRoutes);
 
 // Error handling middleware

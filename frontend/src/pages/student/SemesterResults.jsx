@@ -10,12 +10,23 @@ const SemesterResults = () => {
     const [results, setResults] = useState([]);
     const [gpa, setGpa] = useState(0.00);
     const [loading, setLoading] = useState(false);
+    const [sessions, setSessions] = useState([]);
 
-    // Mock sessions for now
-    const sessions = [
-        { value: '2023/2024', label: '2023/2024' },
-        { value: '2022/2023', label: '2022/2023' }
-    ];
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const response = await api.get('/sessions');
+                const formattedSessions = response.data.data.map(s => ({
+                    value: s.name,
+                    label: s.name
+                }));
+                setSessions(formattedSessions);
+            } catch (error) {
+                console.error('Error fetching sessions:', error);
+            }
+        };
+        fetchSessions();
+    }, []);
 
     const fetchResults = async () => {
         if (!selectedSession || !selectedSemester) {
@@ -25,17 +36,28 @@ const SemesterResults = () => {
 
         setLoading(true);
         try {
-            // endpoint: /results/my-results?session=...&semester=...
-            // Mock data
-            setResults([
-                { courseCode: 'CSC301', title: 'Data Structures', unit: 3, score: 78, grade: 'A', point: 5 },
-                { courseCode: 'CSC302', title: 'Operating Systems', unit: 3, score: 65, grade: 'B', point: 4 },
-                { courseCode: 'GNS301', title: 'Entreprenuership', unit: 2, score: 82, grade: 'A', point: 5 },
-                { courseCode: 'MTH301', title: 'Numerical Analysis', unit: 3, score: 55, grade: 'C', point: 3 }
-            ]);
-            setGpa(4.27); // Mock calculation
+            const response = await api.get('/results/my-results', {
+                params: {
+                    session: selectedSession,
+                    semester: selectedSemester
+                }
+            });
+
+            const { results, gpa } = response.data.data;
+
+            setResults(results.map(r => ({
+                courseCode: r.courseId?.courseCode,
+                title: r.courseId?.title,
+                unit: r.courseId?.creditUnit,
+                score: r.totalScore,
+                grade: r.grade,
+                point: r.gradePoint
+            })));
+
+            setGpa(gpa?.gpa || 0.00);
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching results:', error);
+            alert(error.response?.data?.message || 'Failed to fetch results');
         } finally {
             setLoading(false);
         }

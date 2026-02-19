@@ -20,6 +20,7 @@ const CourseList = () => {
     const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [departments, setDepartments] = useState([]);
 
     const containerStyles = {
         padding: '24px',
@@ -38,6 +39,19 @@ const CourseList = () => {
     const paginationStyles = { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '24px' };
     const loadingStyles = { textAlign: 'center', padding: '40px', fontSize: '16px', color: '#6b7280' };
     const emptyStyles = { textAlign: 'center', padding: '60px 20px', color: '#6b7280' };
+
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data.data);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
 
     useEffect(() => {
         fetchCourses();
@@ -107,8 +121,7 @@ const CourseList = () => {
                         onChange={handleFilterChange}
                         options={[
                             { value: '', label: 'All Departments' },
-                            { value: 'Computer Science', label: 'Computer Science' },
-                            { value: 'Mathematics', label: 'Mathematics' }
+                            ...departments.map(d => ({ value: d.name, label: d.name }))
                         ]}
                     />
                     <Select

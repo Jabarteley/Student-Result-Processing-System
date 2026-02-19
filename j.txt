@@ -1,0 +1,246 @@
+jabar, this type of test (110 questions in 60 minutes) means:
+
+⚡ ~30–35 seconds per question
+
+Mostly concept checking
+
+Designed to filter mid-level vs senior engineers
+
+Since this is Senior Software Engineer (Laravel + React Native), expect questions in these categories:
+
+🔥 1️⃣ Laravel (Very Likely 30–40%)
+Possible Multiple Choice Questions
+
+1. What is the default ORM used in Laravel?
+
+A) Doctrine
+
+B) Eloquent ✅
+
+C) ActiveRecord
+
+D) Sequelize
+
+2. What does php artisan migrate:fresh do?
+
+A) Runs pending migrations
+
+B) Rolls back last migration
+
+C) Drops all tables and re-runs migrations ✅
+
+D) Creates new migration
+
+3. Which method defines a one-to-many relationship?
+
+A) hasOne()
+
+B) belongsTo()
+
+C) hasMany() ✅
+
+D) morphOne()
+
+4. How do you protect against CSRF in Laravel?
+
+A) Middleware
+
+B) @csrf directive ✅
+
+C) Hashing
+
+D) Validation
+
+Possible True/False
+
+Laravel uses MVC architecture → ✅ True
+
+Eloquent relationships are lazy loaded by default → ✅ True
+
+dd() continues script execution → ❌ False
+
+Queue workers run synchronously by default → ❌ False
+
+🔥 2️⃣ React Native (Very Likely 25–30%)
+Multiple Choice
+
+1. What is used for navigation in React Native apps?
+
+A) React Router
+
+B) React Navigation ✅
+
+C) Vue Router
+
+D) Native Stack Only
+
+2. What does useEffect(() => {}, []) do?
+
+A) Runs on every render
+
+B) Runs only once after mount ✅
+
+C) Runs before render
+
+D) Runs after state update only
+
+3. AsyncStorage is used for?
+
+A) Secure database
+
+B) Temporary memory
+
+C) Persistent key-value storage ✅
+
+D) Redux replacement
+
+True/False
+
+React Native uses WebView for rendering UI → ❌ False
+
+setState is asynchronous → ✅ True
+
+FlatList improves performance for large lists → ✅ True
+
+🔥 3️⃣ API & Backend Architecture
+
+Expect questions on:
+
+REST principles
+
+HTTP status codes
+
+JWT authentication
+
+Middleware
+
+Rate limiting
+
+CORS
+
+Example:
+
+What status code is returned for unauthorized access?
+
+A) 401 ✅
+
+B) 403
+
+C) 500
+
+D) 200
+
+(True senior trick: 401 = unauthenticated, 403 = authenticated but forbidden)
+
+🔥 4️⃣ Database (MySQL/Postgres)
+
+Indexing
+
+N+1 problem
+
+Transactions
+
+Foreign keys
+
+Normalization
+
+Example:
+
+What causes N+1 query problem?
+
+A) Improper indexing
+
+B) Lazy loading relationships repeatedly ✅
+
+C) Missing foreign key
+
+D) Deadlocks
+
+🔥 5️⃣ Security (Senior-Level Filter)
+
+SQL Injection
+
+XSS
+
+CSRF
+
+Password hashing
+
+HTTPS
+
+bcrypt vs md5
+
+True/False:
+
+md5 is safe for password hashing → ❌ False
+
+HTTPS encrypts request body → ✅ True
+
+🔥 6️⃣ DevOps / CI/CD
+
+Docker basics
+
+Git workflows
+
+Branching
+
+Merge conflicts
+
+Environment variables
+
+Example:
+
+What does git rebase do?
+
+A) Merges two repos
+
+B) Reapplies commits on top of another base branch ✅
+
+C) Deletes history
+
+D) Creates new repo
+
+🔥 7️⃣ Performance & Optimization
+
+Caching (Redis)
+
+Queue systems
+
+Lazy vs eager loading
+
+API pagination
+
+Memoization
+
+Example:
+
+Which improves Laravel query performance?
+
+A) with() eager loading ✅
+
+B) dd()
+
+C) echo
+
+D) var_dump
+
+🔥 8️⃣ Logic & Problem Solving
+
+Expect:
+
+Time complexity questions
+
+Array manipulation logic
+
+Edge case questions
+
+Output prediction
+
+Example:
+
+$x = 5;
+echo $x++;
+
+
+Output?
+Answer: 5 (post-increment)

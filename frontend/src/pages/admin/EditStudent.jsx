@@ -22,6 +22,7 @@ const EditStudent = () => {
         sessionAdmitted: '',
         gender: ''
     });
+    const [departments, setDepartments] = useState([]);
 
     const containerStyles = {
         padding: '24px',
@@ -48,7 +49,17 @@ const EditStudent = () => {
 
     useEffect(() => {
         fetchStudent();
+        fetchDepartments();
     }, [id]);
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data.data);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
 
     const fetchStudent = async () => {
         try {
@@ -184,9 +195,8 @@ const EditStudent = () => {
                             onChange={handleChange}
                             required
                             options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' }
+                                { value: '', label: 'Select Department' },
+                                ...departments.map(d => ({ value: d.name, label: d.name }))
                             ]}
                         />
 

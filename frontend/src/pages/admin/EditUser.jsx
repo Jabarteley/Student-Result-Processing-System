@@ -18,6 +18,7 @@ const EditUser = () => {
         department: '',
         isActive: true
     });
+    const [departments, setDepartments] = useState([]);
 
     const containerStyles = {
         padding: '24px',
@@ -44,7 +45,17 @@ const EditUser = () => {
 
     useEffect(() => {
         fetchUser();
+        fetchDepartments();
     }, [id]);
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data.data);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
 
     const fetchUser = async () => {
         try {
@@ -148,11 +159,8 @@ const EditUser = () => {
                             onChange={handleChange}
                             required={formData.role !== 'admin'}
                             options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' },
-                                { value: 'Chemistry', label: 'Chemistry' },
-                                { value: 'Administration', label: 'Administration' }
+                                { value: '', label: 'Select Department' },
+                                ...departments.map(d => ({ value: d.name, label: d.name }))
                             ]}
                         />
 

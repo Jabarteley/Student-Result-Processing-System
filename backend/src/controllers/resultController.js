@@ -389,3 +389,173 @@ export const getResultsByCourse = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc    Get logged in student's results
+ * @route   GET /api/results/my-results
+ * @access  Private (Student)
+ */
+export const getMyResults = async (req, res) => {
+    try {
+        const { session, semester } = req.query;
+
+        // Find the student profile for the logged in user
+        const student = await Student.findOne({ userId: req.user._id });
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: 'Student profile not found'
+            });
+        }
+
+        const query = { studentId: student._id, status: 'approved' };
+        if (session) query.session = session;
+        if (semester) query.semester = semester;
+
+        const results = await Result.find(query)
+            .populate('courseId', 'courseCode title creditUnit')
+            .sort({ session: -1, semester: -1 });
+
+        // Get GPA if session and semester provided
+        let gpaData = null;
+        if (session && semester) {
+            gpaData = await getStudentGPA(student._id, session, semester);
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                results,
+                gpa: gpaData
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Get all results with filters
+ * @route   GET /api/results
+ * @access  Private
+ */
+export const getResults = async (req, res) => {
+    try {
+        const { courseId, studentId, session, semester, status } = req.query;
+        const query = {};
+
+        if (courseId) query.courseId = courseId;
+        if (studentId) query.studentId = studentId;
+        if (session) query.session = session;
+        if (semester) query.semester = semester;
+        if (status) query.status = status;
+
+        const results = await Result.find(query)
+            .populate({
+                path: 'studentId',
+                populate: { path: 'userId', select: 'name email' }
+            })
+            .populate('courseId', 'courseCode title creditUnit')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: results.length,
+            data: results
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Bulk update scores
+ * @route   POST /api/results/bulk-update
+ * @access  Private (Lecturer, Admin)
+ */
+export const bulkUpdateResults = async (req, res) => {
+    try {
+        const { courseId, scores, submit, session, semester } = req.body;
+
+        if (!courseId || !scores || !Array.isArray(scores)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide courseId and scores array'
+            });
+        }
+
+        const updatedResults = [];
+        const errors = [];
+
+        for (const item of scores) {
+            try {
+                const { studentId, caScore, examScore } = item;
+
+                // Build update object
+                const updateData = {
+                    CA: caScore,
+                    exam: examScore,
+                    updatedBy: req.user._id
+                };
+
+                if (submit) {
+                    updateData.status = 'submitted';
+                    updateData.submittedAt = new Date();
+                    updateData.submittedBy = req.user._id;
+                }
+
+                // If session/semester provided, use them for upsert
+                // Otherwise try to find existing result
+                let result;
+                if (session && semester) {
+                    result = await Result.findOneAndUpdate(
+                        { studentId, courseId, session, semester },
+                        updateData,
+                        { upsert: true, new: true }
+                    );
+                } else {
+                    // Try to update the most recent one if no session/semester provided
+                    result = await Result.findOneAndUpdate(
+                        { studentId, courseId },
+                        updateData,
+                        { sort: { createdAt: -1 }, new: true }
+                    );
+                }
+
+                if (result) {
+                    updatedResults.push(result);
+                }
+            } catch (err) {
+                errors.push({ studentId: item.studentId, error: err.message });
+            }
+        }
+
+        await logAction({
+            userId: req.user._id,
+            action: submit ? 'SUBMIT_RESULT' : 'UPDATE_RESULT',
+            resource: 'Result',
+            description: `Bulk ${submit ? 'submitted' : 'updated'} ${updatedResults.length} scores for course ${courseId}`
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully processed ${updatedResults.length} records`,
+            data: {
+                processed: updatedResults.length,
+                failed: errors.length,
+                errors
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

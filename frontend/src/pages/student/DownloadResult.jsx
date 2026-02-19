@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
-import Card from '../../components/common/Card';
+import React, { useState, useEffect } from 'react';
 import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
+import Card from '../../components/common/Card';
+import api from '../../services/api';
 
 const DownloadResult = () => {
     const [session, setSession] = useState('');
     const [semester, setSemester] = useState('');
     const [generating, setGenerating] = useState(false);
+    const [sessions, setSessions] = useState([]);
+
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const response = await api.get('/sessions');
+                setSessions(response.data.data.map(s => ({ value: s.name, label: s.name })));
+            } catch (error) {
+                console.error('Error fetching sessions:', error);
+            }
+        };
+        fetchSessions();
+    }, []);
 
     const handleDownload = () => {
         if (!session || !semester) return;
@@ -32,10 +46,7 @@ const DownloadResult = () => {
                         label="Session"
                         value={session}
                         onChange={(e) => setSession(e.target.value)}
-                        options={[
-                            { value: '2023/2024', label: '2023/2024' },
-                            { value: '2022/2023', label: '2022/2023' }
-                        ]}
+                        options={sessions}
                     />
 
                     <Select

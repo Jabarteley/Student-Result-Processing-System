@@ -95,6 +95,6 @@ export const createSessionValidation = [
  * Validation rules for MongoDB ObjectId
  */
 export const mongoIdValidation = [
-    param('id').isMongoId().withMessage('Invalid ID'),
+    param(['id', 'studentId', 'courseId']).optional().isMongoId().withMessage('Invalid ID format'),
     validate
 ];

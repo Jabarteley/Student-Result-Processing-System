@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import Card from '../../components/common/Card';
@@ -17,6 +17,22 @@ const CreateUser = () => {
         department: '',
         faculty: 'Science' // Default faculty
     });
+    const [departments, setDepartments] = useState([]);
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await api.get('/departments');
+                setDepartments(response.data.data);
+                if (response.data.data.length > 0) {
+                    setFormData(prev => ({ ...prev, department: response.data.data[0].name }));
+                }
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+            }
+        };
+        fetchDepartments();
+    }, []);
 
     const containerStyles = {
         padding: '24px',
@@ -134,11 +150,8 @@ const CreateUser = () => {
                             onChange={handleChange}
                             required={formData.role !== 'admin'}
                             options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' },
-                                { value: 'Chemistry', label: 'Chemistry' },
-                                { value: 'Administration', label: 'Administration' }
+                                { value: '', label: 'Select Department' },
+                                ...departments.map(d => ({ value: d.name, label: d.name }))
                             ]}
                         />
                     </div>

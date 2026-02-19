@@ -11,6 +11,7 @@ const EditCourse = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [lecturers, setLecturers] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         courseCode: '',
         title: '',
@@ -29,8 +30,18 @@ const EditCourse = () => {
     const formGridStyles = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' };
 
     useEffect(() => {
+        fetchDepartments();
         fetchCourseAndLecturers();
     }, [id]);
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data.data);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
 
     const fetchCourseAndLecturers = async () => {
         try {
@@ -144,9 +155,8 @@ const EditCourse = () => {
                             onChange={handleChange}
                             required
                             options={[
-                                { value: 'Computer Science', label: 'Computer Science' },
-                                { value: 'Mathematics', label: 'Mathematics' },
-                                { value: 'Physics', label: 'Physics' }
+                                { value: '', label: 'Select Department' },
+                                ...departments.map(d => ({ value: d.name, label: d.name }))
                             ]}
                         />
 
