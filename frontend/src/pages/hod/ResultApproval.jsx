@@ -30,17 +30,20 @@ const ResultApproval = () => {
                 // Group results by course
                 const grouped = results.reduce((acc, result) => {
                     const courseId = result.courseId?._id;
-                    if (!acc[courseId]) {
-                        acc[courseId] = {
+                    const groupKey = `${courseId}-${result.session}-${result.semester}`;
+                    if (!acc[groupKey]) {
+                        acc[groupKey] = {
                             courseId: courseId,
                             courseCode: result.courseId?.courseCode,
                             title: result.courseId?.title,
                             lecturer: result.submittedBy?.name || 'Unknown',
                             submittedDate: new Date(result.submittedAt).toLocaleDateString(),
+                            session: result.session,
+                            semester: result.semester,
                             count: 0
                         };
                     }
-                    acc[courseId].count++;
+                    acc[groupKey].count++;
                     return acc;
                 }, {});
 
@@ -56,13 +59,17 @@ const ResultApproval = () => {
     const handleView = async (courseId) => {
         setSelectedCourseId(courseId);
         try {
-            const response = await api.get(`/hod/pending-approvals?courseId=${courseId}`);
-            if (response.data && response.data.success) {
-                // The API returns a list of results. We need to map this to the format expected by the table if different
-                // The table expects: student.matricNumber, caScore, examScore, totalScore, grade
-                // The API result model has: studentId (populated with matricNumber), caScore, examScore, totalScore, grade
-                // But wait, the backend `getPendingApprovals` populates `studentId` properly.
+            // Find session and semester for this course group
+            const courseGroup = pendingResults.find(p => p.courseId === courseId);
+            const response = await api.get(`/hod/pending-approvals`, {
+                params: {
+                    courseId,
+                    session: courseGroup?.session,
+                    semester: courseGroup?.semester
+                }
+            });
 
+            if (response.data && response.data.success) {
                 const formattedScores = response.data.data.map(r => ({
                     _id: r._id,
                     student: { matricNumber: r.studentId?.matricNumber || 'N/A' },
@@ -82,29 +89,41 @@ const ResultApproval = () => {
     const handleApprove = async () => {
         if (!window.confirm('Approve all results for this course?')) return;
         try {
-            await api.post('/hod/approve-result', { courseId: selectedCourseId });
+            const courseGroup = pendingResults.find(p => p.courseId === selectedCourseId);
+            await api.post('/hod/approve', {
+                courseId: selectedCourseId,
+                session: courseGroup?.session,
+                semester: courseGroup?.semester
+            });
             alert('Results approved successfully');
             setViewDetails(null);
             fetchPending();
         } catch (error) {
-            alert('Approval failed'); // Mock API won't likely work yet
+            console.error('Approval failed:', error);
+            alert(error.response?.data?.message || 'Approval failed');
         }
     };
 
-    const handleReject = async () => {
+    const handleReject = async (e) => {
+        if (e) e.preventDefault();
         if (!rejectReason.trim()) {
             alert('Please provide a reason for rejection');
             return;
         }
 
         try {
-            await api.post(`/hod/reject-result/${selectedCourseId}`, { reason: rejectReason });
+            const resultIds = courseScores.map(s => s._id);
+            await api.post('/hod/reject', {
+                resultIds,
+                reason: rejectReason
+            });
 
             // Remove from list
             setPendingResults(prev => prev.filter(r => r.courseId !== selectedCourseId));
             setRejectModalOpen(false);
             setViewDetails(null);
             alert('Result rejected and returned to lecturer.');
+            fetchPending();
         } catch (error) {
             console.error('Error rejecting result:', error);
             alert(error.response?.data?.message || 'Failed to reject result');

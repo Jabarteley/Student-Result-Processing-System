@@ -49,10 +49,10 @@ export const uploadScore = async (req, res) => {
 
         if (result) {
             // Update existing result
-            if (result.status === 'approved') {
+            if (result.status === 'hod_approved') {
                 return res.status(400).json({
                     success: false,
-                    message: 'This result has been approved and cannot be edited'
+                    message: 'This result has been approved by HOD and cannot be edited'
                 });
             }
 
@@ -286,14 +286,14 @@ export const approveResults = async (req, res) => {
                 status: 'submitted'
             },
             {
-                status: 'approved',
-                approvedBy: req.user._id,
-                approvedAt: new Date()
+                status: 'hod_approved',
+                hodApprovedBy: req.user._id,
+                hodApprovedAt: new Date()
             }
         );
 
         // Compute GPA for all affected students
-        const results = await Result.find({ courseId, session, semester, status: 'approved' });
+        const results = await Result.find({ courseId, session, semester, status: 'hod_approved' });
         const studentIds = [...new Set(results.map(r => r.studentId.toString()))];
 
         for (const studentId of studentIds) {
@@ -329,7 +329,7 @@ export const getResultsByStudent = async (req, res) => {
     try {
         const { session, semester } = req.query;
 
-        const query = { studentId: req.params.studentId, status: 'approved' };
+        const query = { studentId: req.params.studentId, status: { $in: ['hod_approved', 'published'] } };
         if (session) query.session = session;
         if (semester) query.semester = semester;
 
@@ -409,7 +409,7 @@ export const getMyResults = async (req, res) => {
             });
         }
 
-        const query = { studentId: student._id, status: 'approved' };
+        const query = { studentId: student._id, status: { $in: ['hod_approved', 'published'] } };
         if (session) query.session = session;
         if (semester) query.semester = semester;
 

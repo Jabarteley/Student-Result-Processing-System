@@ -82,7 +82,10 @@ const ScoreUpload = () => {
                     studentId: student,
                     CA: result ? result.CA : 0,
                     exam: result ? result.exam : 0,
-                    status: result ? result.status : 'draft'
+                    total: result ? result.total : 0,
+                    grade: result ? result.grade : 'F',
+                    status: result ? result.status : 'draft',
+                    rejectionReason: result ? result.rejectionReason : ''
                 };
             });
 
@@ -91,8 +94,12 @@ const ScoreUpload = () => {
             const initialScores = {};
             mergedStudents.forEach(s => {
                 initialScores[s.studentId._id] = {
-                    ca: s.CA || 0,
-                    exam: s.exam || 0
+                    caScore: s.CA || 0,
+                    examScore: s.exam || 0,
+                    totalScore: s.total || 0,
+                    grade: s.grade || 'F',
+                    status: s.status || 'draft',
+                    rejectionReason: s.rejectionReason || ''
                 };
             });
             setScores(initialScores);
@@ -105,13 +112,31 @@ const ScoreUpload = () => {
     };
 
     const handleScoreChange = (studentId, type, value) => {
-        setScores(prev => ({
-            ...prev,
-            [studentId]: {
-                ...prev[studentId],
-                [type]: parseFloat(value) || 0
-            }
-        }));
+        const numValue = parseFloat(value) || 0;
+        setScores(prev => {
+            const current = prev[studentId] || {};
+            const newCA = type === 'caScore' ? numValue : (current.caScore || 0);
+            const newExam = type === 'examScore' ? numValue : (current.examScore || 0);
+            const total = newCA + newExam;
+
+            // Simple frontend grade calculation (will be recalculated by backend)
+            let grade = 'F';
+            if (total >= 70) grade = 'A';
+            else if (total >= 60) grade = 'B';
+            else if (total >= 50) grade = 'C';
+            else if (total >= 45) grade = 'D';
+            else if (total >= 40) grade = 'E';
+
+            return {
+                ...prev,
+                [studentId]: {
+                    ...current,
+                    [type]: numValue,
+                    totalScore: total,
+                    grade: grade
+                }
+            };
+        });
     };
 
     const handleSave = async (submit = false) => {
@@ -122,8 +147,8 @@ const ScoreUpload = () => {
                 semester: selectedSemester,
                 scores: Object.entries(scores).map(([studentId, score]) => ({
                     studentId,
-                    caScore: score.ca,
-                    examScore: score.exam
+                    caScore: score.caScore,
+                    examScore: score.examScore
                 })),
                 submit
             };
@@ -131,8 +156,10 @@ const ScoreUpload = () => {
             await api.post('/results/bulk-update', payload);
             alert(submit ? 'Results submitted for approval' : 'Scores saved successfully');
             if (submit) navigate('/lecturer/courses');
+            else fetchResults(); // Refresh with new data
         } catch (error) {
-            alert('Failed to save scores');
+            console.error('Save failed:', error);
+            alert(error.response?.data?.message || 'Failed to save scores');
         }
     };
 
@@ -193,39 +220,58 @@ const ScoreUpload = () => {
                         </thead>
                         <tbody>
                             {students.map(record => {
-                                const score = scores[record.studentId._id] || { ca: 0, exam: 0 };
-                                const total = score.ca + score.exam;
-                                let grade = 'F';
-                                if (total >= 70) grade = 'A';
-                                else if (total >= 60) grade = 'B';
-                                else if (total >= 50) grade = 'C';
-                                else if (total >= 45) grade = 'D';
-                                else if (total >= 40) grade = 'E';
+                                const studentId = record._id;
+                                const score = scores[studentId] || { caScore: 0, examScore: 0, totalScore: 0, grade: 'F', status: 'draft', rejectionReason: '' };
+                                const isInputDisabled = score.status === 'submitted' || score.status === 'hod_approved';
 
                                 return (
-                                    <tr key={record._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                    <tr key={studentId} style={{ borderBottom: '1px solid #e5e7eb' }}>
                                         <td style={{ padding: '12px' }}>{record.studentId.matricNumber}</td>
                                         <td style={{ padding: '12px' }}>{record.studentId.userId?.name || 'N/A'}</td>
+                                        <td style={{ padding: '12px' }}>
+                                            <span style={{
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                fontSize: '12px',
+                                                backgroundColor:
+                                                    score.status === 'submitted' ? '#e0f2fe' :
+                                                        score.status === 'hod_approved' ? '#dcfce7' :
+                                                            score.status === 'rejected' ? '#fee2e2' : '#f3f4f6',
+                                                color:
+                                                    score.status === 'submitted' ? '#0369a1' :
+                                                        score.status === 'hod_approved' ? '#15803d' :
+                                                            score.status === 'rejected' ? '#b91c1c' : '#374151'
+                                            }}>
+                                                {score.status.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase()) || 'Draft'}
+                                            </span>
+                                            {score.status === 'rejected' && score.rejectionReason && (
+                                                <div style={{ fontSize: '11px', color: '#b91c1c', marginTop: '4px', maxWidth: '150px' }}>
+                                                    Reason: {score.rejectionReason}
+                                                </div>
+                                            )}
+                                        </td>
                                         <td style={{ padding: '12px' }}>
                                             <input
                                                 type="number"
                                                 min="0" max="30"
-                                                value={score.ca}
-                                                onChange={(e) => handleScoreChange(record.studentId._id, 'ca', e.target.value)}
+                                                value={score.caScore}
+                                                onChange={(e) => handleScoreChange(studentId, 'caScore', e.target.value)}
                                                 style={{ width: '60px', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                                                disabled={isInputDisabled}
                                             />
                                         </td>
                                         <td style={{ padding: '12px' }}>
                                             <input
                                                 type="number"
                                                 min="0" max="70"
-                                                value={score.exam}
-                                                onChange={(e) => handleScoreChange(record.studentId._id, 'exam', e.target.value)}
+                                                value={score.examScore}
+                                                onChange={(e) => handleScoreChange(studentId, 'examScore', e.target.value)}
                                                 style={{ width: '60px', padding: '4px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                                                disabled={isInputDisabled}
                                             />
                                         </td>
-                                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{total}</td>
-                                        <td style={{ padding: '12px', fontWeight: 'bold', color: grade === 'F' ? 'red' : 'green' }}>{grade}</td>
+                                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{score.totalScore}</td>
+                                        <td style={{ padding: '12px', fontWeight: 'bold', color: score.grade === 'F' ? 'red' : 'green' }}>{score.grade}</td>
                                     </tr>
                                 );
                             })}

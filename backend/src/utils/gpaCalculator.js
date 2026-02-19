@@ -16,7 +16,7 @@ export const calculateSemesterGPA = async (studentId, session, semester) => {
             studentId,
             session,
             semester,
-            status: 'approved' // Only count approved results
+            status: { $in: ['hod_approved', 'published'] } // Only count approved or published results
         }).populate('courseId');
 
         if (results.length === 0) {
@@ -62,7 +62,7 @@ export const calculateCGPA = async (studentId, upToSession = null, upToSemester 
         // Build query
         const query = {
             studentId,
-            status: 'approved'
+            status: { $in: ['hod_approved', 'published'] }
         };
 
         // Get all approved results for the student
