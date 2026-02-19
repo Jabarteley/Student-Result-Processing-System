@@ -49,7 +49,7 @@ const SemesterResults = () => {
                 courseCode: r.courseId?.courseCode,
                 title: r.courseId?.title,
                 unit: r.courseId?.creditUnit,
-                score: r.totalScore,
+                score: r.total,
                 grade: r.grade,
                 point: r.gradePoint
             })));

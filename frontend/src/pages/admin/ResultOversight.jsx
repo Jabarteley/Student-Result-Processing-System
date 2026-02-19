@@ -245,7 +245,7 @@ const ResultOversight = () => {
                                             <div style={{ fontWeight: '500' }}>{result.courseId?.courseCode}</div>
                                             <div style={{ fontSize: '12px', color: '#6b7280' }}>{result.courseId?.title}</div>
                                         </td>
-                                        <td style={tdStyles}>{result.totalScore}</td>
+                                        <td style={tdStyles}>{result.total}</td>
                                         <td style={{ ...tdStyles, fontWeight: 'bold' }}>{result.grade}</td>
                                         <td style={tdStyles}>{statusBadge(result.status)}</td>
                                         <td style={tdStyles}>
@@ -253,7 +253,7 @@ const ResultOversight = () => {
                                                 size="small"
                                                 variant="warning"
                                                 onClick={() => {
-                                                    setOverrideData({ resultId: result._id, newScore: result.totalScore, reason: '' });
+                                                    setOverrideData({ resultId: result._id, newScore: result.total, reason: '' });
                                                     setShowOverrideModal(true);
                                                 }}
                                             >

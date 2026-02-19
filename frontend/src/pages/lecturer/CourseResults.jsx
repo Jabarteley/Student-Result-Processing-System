@@ -21,7 +21,7 @@ const CourseResults = () => {
                 const total = results.length;
                 const pass = results.filter(r => r.grade !== 'F').length;
                 const fail = total - pass;
-                const avg = total ? results.reduce((acc, r) => acc + r.totalScore, 0) / total : 0;
+                const avg = total ? results.reduce((acc, r) => acc + (r.total || 0), 0) / total : 0;
 
                 setStats({ total, pass, fail, average: avg.toFixed(1) });
             } catch (error) {

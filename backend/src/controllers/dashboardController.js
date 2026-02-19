@@ -23,7 +23,7 @@ export const getAdminDashboard = async (req, res) => {
             Student.countDocuments({ status: 'active' }),
             User.countDocuments({ role: 'lecturer', isActive: true }),
             Course.countDocuments({ isActive: true }),
-            Result.countDocuments({ status: 'approved' }),
+            Result.countDocuments({ status: { $in: ['hod_approved', 'published'] } }),
             Student.find()
                 .populate('userId', 'name email')
                 .sort({ createdAt: -1 })
@@ -74,7 +74,7 @@ export const getLecturerDashboard = async (req, res) => {
         ] = await Promise.all([
             Result.countDocuments({ courseId: { $in: courseIds } }),
             Result.countDocuments({ courseId: { $in: courseIds }, status: 'submitted' }),
-            Result.countDocuments({ courseId: { $in: courseIds }, status: 'approved' })
+            Result.countDocuments({ courseId: { $in: courseIds }, status: { $in: ['hod_approved', 'published'] } })
         ]);
 
         res.status(200).json({
@@ -123,7 +123,7 @@ export const getStudentDashboard = async (req, res) => {
         // Get recent results
         const recentResults = await Result.find({
             studentId: student._id,
-            status: 'approved'
+            status: { $in: ['hod_approved', 'published'] }
         })
             .populate('courseId', 'courseCode title creditUnit')
             .sort({ createdAt: -1 })
@@ -132,7 +132,7 @@ export const getStudentDashboard = async (req, res) => {
         // Get total courses taken
         const totalCourses = await Result.countDocuments({
             studentId: student._id,
-            status: 'approved'
+            status: { $in: ['hod_approved', 'published'] }
         });
 
         res.status(200).json({
