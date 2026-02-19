@@ -4,6 +4,7 @@ import Student from '../models/Student.js';
 import Session from '../models/Session.js';
 import { logAction } from '../utils/auditLogger.js';
 import { computeAndSaveGPA, getStudentGPA } from '../utils/gpaCalculator.js';
+import { calculateGrade } from '../utils/gradeCalculator.js';
 import csv from 'csv-parser';
 import fs from 'fs';
 
@@ -497,10 +498,17 @@ export const bulkUpdateResults = async (req, res) => {
             try {
                 const { studentId, caScore, examScore } = item;
 
+                // Calculate derived fields
+                const total = caScore + examScore;
+                const gradeInfo = calculateGrade(total);
+
                 // Build update object
                 const updateData = {
                     CA: caScore,
                     exam: examScore,
+                    total: total,
+                    grade: gradeInfo.grade,
+                    gradePoint: gradeInfo.point,
                     updatedBy: req.user._id
                 };
 

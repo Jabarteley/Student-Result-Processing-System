@@ -4,6 +4,7 @@ import Student from '../models/Student.js';
 import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { logAction } from '../utils/auditLogger.js';
+import { calculateGrade } from '../utils/gradeCalculator.js';
 
 // Get HOD dashboard data
 export const getHODDashboard = async (req, res) => {
@@ -40,10 +41,19 @@ export const getHODDashboard = async (req, res) => {
             .sort({ submittedAt: -1 })
             .limit(10);
 
-        // Filter by department
-        const departmentSubmissions = recentSubmissions.filter(
-            result => result.courseId?.department === hodDepartment
-        );
+        // Filter by department and self-heal
+        const departmentSubmissions = recentSubmissions
+            .filter(result => result.courseId?.department === hodDepartment)
+            .map(result => {
+                const r = result.toObject();
+                if (r.total === undefined || r.grade === undefined) {
+                    r.total = (r.CA || 0) + (r.exam || 0);
+                    const gradeInfo = calculateGrade(r.total);
+                    r.grade = gradeInfo.grade;
+                    r.gradePoint = gradeInfo.point;
+                }
+                return r;
+            });
 
         res.json({
             success: true,
@@ -86,10 +96,20 @@ export const getPendingApprovals = async (req, res) => {
             .populate('submittedBy', 'name')
             .sort({ submittedAt: -1 });
 
-        // Filter by department
-        const departmentResults = results.filter(
-            result => result.courseId?.department === hodDepartment
-        );
+        // Filter by department and ensure scores/grades are calculated
+        const departmentResults = results
+            .filter(result => result.courseId?.department === hodDepartment)
+            .map(result => {
+                const r = result.toObject();
+                // Self-healing: if total or grade is missing, calculate it
+                if (r.total === undefined || r.grade === undefined) {
+                    r.total = (r.CA || 0) + (r.exam || 0);
+                    const gradeInfo = calculateGrade(r.total);
+                    r.grade = gradeInfo.grade;
+                    r.gradePoint = gradeInfo.point;
+                }
+                return r;
+            });
 
         res.json({
             success: true,

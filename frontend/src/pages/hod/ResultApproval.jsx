@@ -66,9 +66,9 @@ const ResultApproval = () => {
                 const formattedScores = response.data.data.map(r => ({
                     _id: r._id,
                     student: { matricNumber: r.studentId?.matricNumber || 'N/A' },
-                    caScore: r.caScore,
-                    examScore: r.examScore,
-                    totalScore: r.totalScore,
+                    caScore: r.CA,
+                    examScore: r.exam,
+                    totalScore: r.total,
                     grade: r.grade
                 }));
                 setCourseScores(formattedScores);
